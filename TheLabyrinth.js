@@ -8,6 +8,7 @@ var R = parseInt(inputs[0]); // number of rows.
 var C = parseInt(inputs[1]); // number of columns.
 var A = parseInt(inputs[2]); // number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 
+var totalItem = R * C;
 const debug = true;
 
 function logErr() {
@@ -160,38 +161,38 @@ function move(coordA, coordB) {
     }
 }
 
-function moveCommandRoomToInitPos() {
-    var backToInitPath = shortestPath(coordC, KInitCoord);
-    logErr("Path to init", JSON.stringify(backToInitPath));
-    //print(JSON.stringify(backToInitPath));
-    logErr("End search");
-
-    let cameFrom = matrix[KInitCoord.row][KInitCoord.col].cameFrom;
-    var currentCoord = backToInitPath.shift();
-    while (backToInitPath.length > 0) {
-        nextCoord = backToInitPath.shift();
-        move(currentCoord, nextCoord);
-        currentCoord = nextCoord;
-    }
-}
-
 let shortestPathToC = null;
-logErr("Start tour");
-var inputs = readline().split(' ');
+var mapItemDiscover = 0;
+while (!isReachStartPos) {
+    logErr("Start tour");
+    if (!commandFound) {
+        var inputs = readline().split(' ');
+    }
+    //printErr("inputs", inputs);
+    var KR = parseInt(inputs[0]); // row where Kirk is located.
+    var KC = parseInt(inputs[1]); // column where Kirk is located.
+    if (!KInitCoord) {
+        KInitCoord = {
+            row: KR,
+            col: KC
+        };
+    }
+    if (KR && KC) {
+        matrix[KR][KC].visited = true;
+    }
+    if (startGames === false) {
+        queue.push({row: KR, col: KC});
+        gameStart = true;
+    }
 
-//printErr("inputs", inputs);
-var KR = parseInt(inputs[0]); // row where Kirk is located.
-var KC = parseInt(inputs[1]); // column where Kirk is located.
+    //matrix[KR][KC].value =  '.'; matrix[KR][KC].visited =  true;
+    if (coordC && coordC.row === KR && coordC.col === KC) {
+        logErr("Command found", " need to go back to start position");
+        ///printErr("maxtrix", matrix);
+        commandFound = true;
+        //like here just foreach move print(reversed(move)) ok i will try, got the idea
+    }
 
-KInitCoord = {
-    row: KR,
-    col: KC
-};
-queue = [KInitCoord];
-while (queue.length > 0) {
-    let current = queue.pop();
-    KR = current.row;
-    KC = current.col;
     for (var i = 0; i < R; i++) {
         var ROW = readline(); // C of the characters in '#.TC?' (i.e. one line of the ASCII maze).
 
@@ -199,10 +200,8 @@ while (queue.length > 0) {
         var jEnd = Math.min(KC + 2, C);
 
         for (let j = jStart; j < jEnd; j++) {
-            if (i === KR && j === KC) {
-                continue;
-            }
-            if (ROW[j] !== '?') {
+            if (ROW[j] !== '?' && ROW[j] !== null) {
+                mapItemDiscover++;
                 matrix[i][j].value = ROW[j];
                 if (ROW[j] === 'C') {
                     logErr('Command coord discover', JSON.stringify(ROW[j]));
@@ -210,11 +209,15 @@ while (queue.length > 0) {
                         row: i,
                         col: j
                     };
+                    shortestPathToC = shortestPath({
+                        row: KR,
+                        col: KC
+                    }, coordC);
+
                 }
             }
         }
     }
-    
     if (shortestPathToC) {
         // TODO go straight to the control room instead of discover the rest of map ?
         // may be it is better to discover the most possible of map before go straight
@@ -228,12 +231,7 @@ while (queue.length > 0) {
         var neighBoursCoord_col = neighBoursCoord.col + KC;
 
         if (neighBoursCoord_row >= 0 && neighBoursCoord_row < R && neighBoursCoord_col >= 0 && neighBoursCoord_col < C) {
-            /*if (matrix[neighBoursCoord_row][neighBoursCoord_col].visited === false
-                && (matrix[neighBoursCoord_row][neighBoursCoord_col].value === '.' || matrix[neighBoursCoord_row][neighBoursCoord_col].value === 'C')) {*/
-            // we need to discover the whole map, then when the whole map is shown, we rech
-            // to target and then go back to initial position
-
-            if (matrix[neighBoursCoord_row][neighBoursCoord_col].visited === false && matrix[neighBoursCoord_row][neighBoursCoord_col].value === '.') {
+            if (matrix[neighBoursCoord_row][neighBoursCoord_col].visited === false && (matrix[neighBoursCoord_row][neighBoursCoord_col].value === '.' || matrix[neighBoursCoord_row][neighBoursCoord_col].value === 'C')) {
                 hasNeighBoursUnVisited = true;
                 neighBoursUnVisitedCoord = {
                     row: neighBoursCoord_row,
@@ -268,7 +266,21 @@ while (queue.length > 0) {
         }, matrix[KR][KC].parent);
         // go back to parent and let try to go to another neighbours
     }
+    // Write an action using print() To debug: printErr('Debug messages...');
+    // print('RIGHT'); // Kirk's next move (UP DOWN LEFT or RIGHT).
+
+    logErr("End tour");
 }
-// Write an action using print() To debug: printErr('Debug messages...');
-// print('RIGHT'); // Kirk's next move (UP DOWN LEFT or RIGHT).
-logErr("End tour");
+
+var backToInitPath = shortestPath(coordC, KInitCoord);
+logErr("Path to init", JSON.stringify(backToInitPath));
+//print(JSON.stringify(backToInitPath));
+logErr("End search");
+
+let cameFrom = matrix[KInitCoord.row][KInitCoord.col].cameFrom;
+var currentCoord = backToInitPath.shift();
+while (backToInitPath.length > 0) {
+    nextCoord = backToInitPath.shift();
+    move(currentCoord, nextCoord);
+    currentCoord = nextCoord;
+}
