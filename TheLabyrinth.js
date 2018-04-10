@@ -8,12 +8,11 @@ var R = parseInt(inputs[0]); // number of rows.
 var C = parseInt(inputs[1]); // number of columns.
 var A = parseInt(inputs[2]); // number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 
-var totalItem = R * C;
 const debug = true;
 
 function logErr() {
     if (debug) {
-        printErr.apply(null, arguments);
+        //printErr.apply(null, arguments);
         //console.error.apply(console, arguments); printErr(arguments);
     }
 }
@@ -73,6 +72,10 @@ function compareScore(A, B) {
  * A and B
  */
 function shortestPath(src, target) {
+    if (!src || !target)
+    {
+        return null;
+    }
     let matrixC = [];
     for (let row = 0; row < matrix.length; row++) {
         let cols = [];
@@ -142,6 +145,7 @@ function shortestPath(src, target) {
  * go from A to B
  */
 function move(coordA, coordB) {
+    //logErr("coordA", JSON.stringify(coordA), "coordB", JSON.stringify(coordB));
     if (coordB.row === 3 && coordB.col === 5) {
         // print("row", coordB.row, "col", coordB.col, "val",
         // JSON.stringify(matrix[coordB.row][coordB.col]));
@@ -162,8 +166,7 @@ function move(coordA, coordB) {
 }
 
 let shortestPathToC = null;
-var mapItemDiscover = 0;
-while (!isReachStartPos) {
+while (!commandFound) {
     logErr("Start tour");
     if (!commandFound) {
         var inputs = readline().split(' ');
@@ -171,7 +174,8 @@ while (!isReachStartPos) {
     //printErr("inputs", inputs);
     var KR = parseInt(inputs[0]); // row where Kirk is located.
     var KC = parseInt(inputs[1]); // column where Kirk is located.
-    if (!KInitCoord) {
+    if (!KInitCoord) 
+    {
         KInitCoord = {
             row: KR,
             col: KC
@@ -180,16 +184,14 @@ while (!isReachStartPos) {
     if (KR && KC) {
         matrix[KR][KC].visited = true;
     }
-    if (startGames === false) {
-        queue.push({row: KR, col: KC});
-        gameStart = true;
-    }
+
 
     //matrix[KR][KC].value =  '.'; matrix[KR][KC].visited =  true;
     if (coordC && coordC.row === KR && coordC.col === KC) {
         logErr("Command found", " need to go back to start position");
         ///printErr("maxtrix", matrix);
         commandFound = true;
+        break;
         //like here just foreach move print(reversed(move)) ok i will try, got the idea
     }
 
@@ -201,7 +203,6 @@ while (!isReachStartPos) {
 
         for (let j = jStart; j < jEnd; j++) {
             if (ROW[j] !== '?' && ROW[j] !== null) {
-                mapItemDiscover++;
                 matrix[i][j].value = ROW[j];
                 if (ROW[j] === 'C') {
                     logErr('Command coord discover', JSON.stringify(ROW[j]));
@@ -209,19 +210,31 @@ while (!isReachStartPos) {
                         row: i,
                         col: j
                     };
-                    shortestPathToC = shortestPath({
-                        row: KR,
-                        col: KC
-                    }, coordC);
-
                 }
             }
         }
     }
-    if (shortestPathToC) {
+    logErr("KInitCoord", JSON.stringify(KInitCoord), "coordC", JSON.stringify(coordC));
+    let pathCommandRoomInitialPos = shortestPath(KInitCoord, coordC);
+    let distanceCommandRoomToInitialPos = pathCommandRoomInitialPos === null ? Number.MAX_VALUE : pathCommandRoomInitialPos.length - 1;
+    logErr("distanceCommandRoomToInitialPos", distanceCommandRoomToInitialPos,
+    "A", A);
+    if (distanceCommandRoomToInitialPos <= A) {
         // TODO go straight to the control room instead of discover the rest of map ?
         // may be it is better to discover the most possible of map before go straight
         // to control room
+        var currentCoord = { row: KR, col : KC }
+        var pathToCoord = shortestPath(currentCoord, coordC);
+        
+        logErr("Path to commandRoom", JSON.stringify(pathToCoord));
+        
+        var currentCoord = pathToCoord.shift();
+        while (pathToCoord.length > 0) {
+            nextCoord = pathToCoord.shift();
+            move(currentCoord, nextCoord);
+            currentCoord = nextCoord;
+        }
+        break;
     }
     let hasNeighBoursUnVisited = false;
     let neighBoursUnVisitedCoord = null;
@@ -231,13 +244,30 @@ while (!isReachStartPos) {
         var neighBoursCoord_col = neighBoursCoord.col + KC;
 
         if (neighBoursCoord_row >= 0 && neighBoursCoord_row < R && neighBoursCoord_col >= 0 && neighBoursCoord_col < C) {
-            if (matrix[neighBoursCoord_row][neighBoursCoord_col].visited === false && (matrix[neighBoursCoord_row][neighBoursCoord_col].value === '.' || matrix[neighBoursCoord_row][neighBoursCoord_col].value === 'C')) {
-                hasNeighBoursUnVisited = true;
-                neighBoursUnVisitedCoord = {
-                    row: neighBoursCoord_row,
-                    col: neighBoursCoord_col
-                };
-                break;
+            if (matrix[neighBoursCoord_row][neighBoursCoord_col].visited === false 
+                && (matrix[neighBoursCoord_row][neighBoursCoord_col].value === '.'
+                || matrix[neighBoursCoord_row][neighBoursCoord_col].value === 'C')) {
+                if (matrix[neighBoursCoord_row][neighBoursCoord_col].value === 'C')
+                {
+                    if (distanceCommandRoomToInitialPos <= A)
+                    {
+                        hasNeighBoursUnVisited = true;
+                        neighBoursUnVisitedCoord = {
+                            row: neighBoursCoord_row,
+                            col: neighBoursCoord_col
+                        };
+                        break;                        
+                    }
+                }
+                else
+                {
+                    hasNeighBoursUnVisited = true;
+                    neighBoursUnVisitedCoord = {
+                        row: neighBoursCoord_row,
+                        col: neighBoursCoord_col
+                    };
+                    break;
+                }
             }
         }
     }
@@ -273,6 +303,7 @@ while (!isReachStartPos) {
 }
 
 var backToInitPath = shortestPath(coordC, KInitCoord);
+
 logErr("Path to init", JSON.stringify(backToInitPath));
 //print(JSON.stringify(backToInitPath));
 logErr("End search");
