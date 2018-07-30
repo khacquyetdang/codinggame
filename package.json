@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "debug": "node --nolazy --inspect-brk=9229 vitesseInterval_03.js"
+  }
+}
