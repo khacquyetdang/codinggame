@@ -1,23 +1,28 @@
-// function to convert speed
-// in m/sec to km/hr
+// function to convert speed in m/sec to km/hr
 function mps_to_kmph(mps) {
   return (3.6 * mps);
 }
 
-
-
-
-var distances = [1100, 1150, 1200, 1250, 1300, 2100, 2150, 2200, 2250, 2300, 3100, 3150, 3200, 3250, 3300, 4100, 4150, 4200, 4250, 4300, 5100, 5150, 5200, 5250, 5300, 6100, 6150, 6200, 6250, 6300, 7100, 7150, 7200, 7250, 7300, 8100, 8150, 8200, 8250, 8300, 9100, 9150, 9200, 9250, 9300, 10100, 10150, 10200, 10250, 10300, 11100, 11150, 11200, 11250, 11300, 12100, 12150, 12200, 12250, 12300, 13100, 13150, 13200, 13250, 13300, 14100, 14150, 14200, 14250, 14300, 15100, 15150, 15200, 15250, 15300, 16100, 16150, 16200, 16250, 16300, 17100, 17150, 17200, 17250, 17300, 18100, 18150, 18200, 18250, 18300, 19100, 19150, 19200, 19250, 19300, 20100, 20150, 20200, 20250, 20300];
-var durations = [10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30];
-
-
-durations = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
-distances = [1234, 2468, 3702, 6170, 8638, 13574, 16042, 20978, 23446, 28382, 35786, 38254, 45658, 50594, 53062, 57998];
+durations = [
+  15,
+  10,
+  30,
+  30,
+  5,
+  10
+];
+distances = [
+  1000,
+  3000,
+  4000,
+  5000,
+  6000,
+  7000
+];
 
 var lightCount = durations.length;
 var maxDuration = 9999 * 2;
-var speedMS = 25;
-
+var speedMS = 55.55555555555556;
 
 var maxDuration = 9999 * 2;
 
@@ -33,10 +38,8 @@ function computeNextSpeed(currentIndex, currentSpeedMin, currentSpeedMax) {
   let nextIntervalLight = durations[currentIndex + 1];
   var startInterval = nextDistanceLight / currentSpeedMax; // 1500 / 25 = 70
   var endInterval = nextDistanceLight / currentSpeedMin; //1500 / 10 = 160
-  // 70 - 160 => [70 -> 90], [120 -> 150]
-  // 60 - 150 => [60 -> 90], [120 -> 150]
-  // 50 - 100 => [60 -> 90]
-  // 50 - 80  => [60 -> 80]
+  // 70 - 160 => [70 -> 90], [120 -> 150] 60 - 150 => [60 -> 90], [120 -> 150] 50
+  // - 100 => [60 -> 90] 50 - 80  => [60 -> 80]
   var indexStart = Math.floor(startInterval / nextIntervalLight);
   if (isOdd(indexStart)) {
     indexStart = indexStart + 1;
@@ -47,12 +50,7 @@ function computeNextSpeed(currentIndex, currentSpeedMin, currentSpeedMax) {
     var end = (index + 1) * nextIntervalLight;
     var speedMin = nextDistanceLight / end;
     var speedMax = nextDistanceLight / start;
-    nextIntervalLightGreen.push({
-      start,
-      end,
-      speedMin,
-      speedMax
-    });
+    nextIntervalLightGreen.push({start, end, speedMin, speedMax});
   }
   if (nextIntervalLightGreen.length === 0) {
     return null;
@@ -81,14 +79,13 @@ function computeNextSpeed(currentIndex, currentSpeedMin, currentSpeedMax) {
   }
   return null;
 }
-// algorithme
-// d'abord calculer les bons intervals de temps et de vitesse pour passer le premier feu rouge
-// Ensuite calculer en fonction des intervals du premier feu rouge, calculer les bons intervals pour passer
-// le deuxieme feu rouge
-// on arrête l'algorithme quand on a trouver le bon moment pour passer jusqu'au dernier feu
-// une fois trouver la vitesse MS, on le convert en km/h en enlevent la partie décimale.
-// On reconvert cette vitesse en ms et on rechecke si cette vitesse passe tous les feux.
-// On mettre à jour la vitesse maximum
+// algorithme d'abord calculer les bons intervals de temps et de vitesse pour
+// passer le premier feu rouge Ensuite calculer en fonction des intervals du
+// premier feu rouge, calculer les bons intervals pour passer le deuxieme feu
+// rouge on arrête l'algorithme quand on a trouver le bon moment pour passer
+// jusqu'au dernier feu une fois trouver la vitesse MS, on le convert en km/h en
+// enlevent la partie décimale. On reconvert cette vitesse en ms et on rechecke
+// si cette vitesse passe tous les feux. On mettre à jour la vitesse maximum
 function computeSpeed() {
   var intervalFirstLight = durations[0];
   var distanceFirstLight = distances[0];
@@ -110,9 +107,32 @@ function computeSpeed() {
     }
   }
 }
+function checkSpeed(bestSpeedMS) {
+  for (var index = 0; index < lightCount; index++) {
+    var currentIntervalAtLight = durations[index];
+    var currentDistance = distances[index];
+    var timeToCurrentLight = currentDistance / bestSpeedMS;
+    var indexInterval = Math.floor(timeToCurrentLight / currentIntervalAtLight);
+    if (isOdd(indexInterval)) {
+      //timeToCurrentLight = 1234 / (88 * 10 / 36) = 50.4818 5
+      return false;
+    }
+  }
+  return true;
+}
 
 var t0 = new Date().getTime();
 var bestSpeed = computeSpeed();
+var bestSpeedKmh = Math.floor(mps_to_kmph(bestSpeed));
+var bestSpeedMS = bestSpeedKmh * 10 / 36;
+if (bestSpeedMS !== bestSpeed) {
+  while (!checkSpeed(bestSpeedMS)) {
+    speedMS = (bestSpeedKmh - 1) * 10 / 36;
+    bestSpeed = computeSpeed();
+    bestSpeedKmh = Math.floor(mps_to_kmph(bestSpeed));
+    bestSpeedMS = bestSpeedKmh * 10 / 36;
+  }
+}
 var t1 = new Date().getTime();
 console.log("Call to compute took " + (t1 - t0) + " milliseconds.");
-console.log("bestSpeed", bestSpeed);
+console.log("bestSpeed", bestSpeed, "bestSpeedKmh", bestSpeedKmh);
