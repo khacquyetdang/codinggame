@@ -11,8 +11,9 @@ var distances = [1100, 1150, 1200, 1250, 1300, 2100, 2150, 2200, 2250, 2300, 310
 var durations = [10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30, 10, 15, 20, 25, 30];
 
 
-durations = [25, 15, 10, 28];
-distances = [700, 2200, 3000, 4000];
+durations = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
+distances = [1234, 2468, 3702, 6170, 8638, 13574, 16042, 20978, 23446, 28382, 35786, 38254, 45658, 50594, 53062, 57998];
+
 var lightCount = durations.length;
 var maxDuration = 9999 * 2;
 var speedMS = 25;
@@ -85,17 +86,23 @@ function computeNextSpeed(currentIndex, currentSpeedMin, currentSpeedMax) {
 // Ensuite calculer en fonction des intervals du premier feu rouge, calculer les bons intervals pour passer
 // le deuxieme feu rouge
 // on arrête l'algorithme quand on a trouver le bon moment pour passer jusqu'au dernier feu
+// une fois trouver la vitesse MS, on le convert en km/h en enlevent la partie décimale.
+// On reconvert cette vitesse en ms et on rechecke si cette vitesse passe tous les feux.
+// On mettre à jour la vitesse maximum
 function computeSpeed() {
   var intervalFirstLight = durations[0];
   var distanceFirstLight = distances[0];
   for (var index = 0; index * durations[0] < maxDuration; index = index + 2) {
     var startInterval = Math.max(index * intervalFirstLight, 1);
-    var currentSpeedMax = distanceFirstLight / startInterval;
+    var currentSpeedMax = Math.min(distanceFirstLight / startInterval, speedMS);
     var endInterval = (index + 1) * intervalFirstLight;
     var currentSpeedMin = distanceFirstLight / endInterval;
     if (currentSpeedMin > speedMS) {
       continue;
     } else {
+      if (lightCount === 1) {
+        return currentSpeedMax;
+      }
       var bestSpeed = computeNextSpeed(0, currentSpeedMin, currentSpeedMax);
       if (bestSpeed !== null) {
         return bestSpeed;

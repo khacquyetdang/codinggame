@@ -7,6 +7,6 @@
     "type": "node",
     "request": "launch",
     "name": "Lancer le programme",
-    "program": "${workspaceFolder}/vitesseInterval_v2.js"
+    "program": "${workspaceFolder}/vitesseInterval_v3.js"
   }]
 }
